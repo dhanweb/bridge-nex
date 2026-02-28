@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Hash, Menu, Plus, Trash2, X } from "lucide-react";
+import { Hash, Menu, PencilLine, Trash2, X } from "lucide-react";
 import { CreateRoomButtonInline } from "./CreateRoomButtonInline";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -18,6 +18,8 @@ export default function RoomsSidebar({ rooms }: { rooms: Room[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState("");
 
   const sortedRooms = useMemo(
     () => [...rooms].sort((a, b) => b.created_at - a.created_at),
@@ -37,6 +39,30 @@ export default function RoomsSidebar({ rooms }: { rooms: Room[] }) {
     } else {
       router.refresh();
     }
+  }
+
+  async function saveName(id: string) {
+    const name = editingValue.trim();
+    if (!name) {
+      toast.error("名称不能为空");
+      return;
+    }
+    if (name.length > 64) {
+      toast.error("名称过长");
+      return;
+    }
+    const res = await fetch(`/api/room/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+    if (!res.ok) {
+      toast.error("更新失败");
+      return;
+    }
+    setEditingId(null);
+    setEditingValue("");
+    router.refresh();
   }
 
   return (
@@ -69,36 +95,79 @@ export default function RoomsSidebar({ rooms }: { rooms: Room[] }) {
             <span className="text-slate-600">{rooms.length}</span>
           </div>
           <div className="space-y-2">
-            {sortedRooms.map((room) => (
-              <div
-                key={room.id}
-                className={cn(
-                  "group flex items-center gap-3 rounded-xl px-3 py-2 border border-transparent cursor-pointer hover:border-slate-600 hover:bg-slate-800/50",
-                  pathname === `/room/${room.id}` && "border-blue-500/50 bg-slate-800/70"
-                )}
-              >
-                <div className="h-2.5 w-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
-                <Link
-                  href={`/room/${room.id}`}
-                  className="flex-1 truncate text-sm font-medium text-slate-200"
-                  onClick={() => setSidebarOpen(false)}
+            {sortedRooms.map((room) => {
+              const active = pathname === `/room/${room.id}`;
+              const isEditing = editingId === room.id;
+              return (
+                <div
+                  key={room.id}
+                  className={cn(
+                    "group flex items-center gap-3 rounded-xl px-3 py-2 border border-transparent cursor-pointer hover:border-slate-600 hover:bg-slate-800/50",
+                    active && "border-blue-500/50 bg-slate-800/70"
+                  )}
                 >
-                  {room.name}
-                </Link>
-                <button
-                  className="p-1 text-slate-500 hover:text-white"
-                  onClick={() => deleteRoom(room.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
+                  <div className="h-2.5 w-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                  {isEditing ? (
+                    <input
+                      autoFocus
+                      value={editingValue}
+                      onChange={(e) => setEditingValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          void saveName(room.id);
+                        }
+                        if (e.key === "Escape") {
+                          setEditingId(null);
+                          setEditingValue("");
+                        }
+                      }}
+                      className="flex-1 rounded bg-slate-900 border border-slate-700 px-2 py-1 text-sm text-white focus:outline-none"
+                    />
+                  ) : (
+                    <Link
+                      href={`/room/${room.id}`}
+                      className="flex-1 truncate text-sm font-medium text-slate-200"
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      {room.name}
+                    </Link>
+                  )}
+                  {isEditing ? (
+                    <button
+                      className="p-1 text-blue-400 hover:text-blue-200"
+                      onClick={() => void saveName(room.id)}
+                    >
+                      保存
+                    </button>
+                  ) : (
+                    <button
+                      className="p-1 text-slate-500 hover:text-white"
+                      onClick={() => {
+                        setEditingId(room.id);
+                        setEditingValue(room.name);
+                      }}
+                    >
+                      <PencilLine className="h-4 w-4" />
+                    </button>
+                  )}
+                  <button
+                    className="p-1 text-slate-500 hover:text-white"
+                    onClick={() => deleteRoom(room.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
 
-          <CreateRoomButtonInline onCreated={(id) => {
-            setSidebarOpen(false);
-            router.push(`/room/${id}`);
-          }} />
+          <CreateRoomButtonInline
+            onCreated={(id) => {
+              setSidebarOpen(false);
+              router.push(`/room/${id}`);
+            }}
+          />
         </div>
       </div>
 
