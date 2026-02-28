@@ -25,13 +25,7 @@ export function createRoom(name: string): Room {
   return { id, name, created_at };
 }
 
-export function deleteRoom(id: string): void {
+export function updateRoomName(id: string, name: string): void {
   const db = getDb();
-  clearRoom(id);
-  const stmt = db.prepare("DELETE FROM room WHERE id = ?");
-  stmt.run(id);
-  const dir = path.join(process.cwd(), "storage", id);
-  try {
-    fs.rmSync(dir, { recursive: true, force: true });
-  } catch {}
+  db.prepare("UPDATE room SET name = ? WHERE id = ?").run(name, id);
 }
