@@ -89,26 +89,6 @@ export default function RoomClient({
     [rooms]
   );
 
-  async function createRoom(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const name = String(formData.get("name") || "").trim();
-    if (!name) return;
-    const res = await fetch("/api/room", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
-    });
-    if (!res.ok) {
-      toast.error("创建失败");
-      return;
-    }
-    const room = await res.json();
-    router.push(`/room/${room.id}`);
-    router.refresh();
-    setIsPending(false);
-  }
-
   async function deleteRoom(id: string) {
     const ok = confirm("确定删除房间？房间内内容将被清空。");
     if (!ok) return;
@@ -327,18 +307,18 @@ export default function RoomClient({
             ))}
           </div>
 
-          <form onSubmit={createRoom} className="space-y-2">
+          <form className="space-y-2">
             <label className="text-xs uppercase tracking-wide text-slate-500">创建房间</label>
             <div className="flex gap-2">
               <input
-                name="name"
-                maxLength={64}
-                className="flex-1 rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
-                placeholder="房间名称"
+                disabled
+                className="flex-1 rounded-lg bg-slate-900 border border-slate-800 px-3 py-2 text-sm text-slate-500"
+                placeholder="在左侧创建房间"
               />
               <button
-                type="submit"
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white shadow hover:bg-blue-500"
+                type="button"
+                className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-slate-400"
+                disabled
               >
                 <Plus className="h-4 w-4" />
               </button>
@@ -362,14 +342,6 @@ export default function RoomClient({
             <div className="flex items-center gap-2 text-slate-200 font-semibold">
               <Hash className="h-4 w-4 text-slate-500" /> {currentRoom.name}
             </div>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <button
-              onClick={() => clearRoom(currentRoom.id)}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-slate-200 hover:border-blue-500 hover:text-white"
-            >
-              <Trash2 className="h-4 w-4" /> 清空房间
-            </button>
           </div>
         </header>
 
