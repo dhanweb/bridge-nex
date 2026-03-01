@@ -29,3 +29,10 @@ export function updateRoomName(id: string, name: string): void {
   const db = getDb();
   db.prepare("UPDATE room SET name = ? WHERE id = ?").run(name, id);
 }
+
+export function deleteRoom(id: string): void {
+  // 删除房间前先清理房间内容及文件
+  clearRoom(id);
+  const db = getDb();
+  db.prepare("DELETE FROM room WHERE id = ?").run(id);
+}

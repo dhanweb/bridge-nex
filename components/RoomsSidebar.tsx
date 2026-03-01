@@ -18,13 +18,20 @@ export default function RoomsSidebar({ rooms }: { rooms: Room[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingValue, setEditingValue] = useState("");
+  const [renameOpenId, setRenameOpenId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [renameLoading, setRenameLoading] = useState(false);
 
   const sortedRooms = useMemo(
     () => [...rooms].sort((a, b) => b.created_at - a.created_at),
     [rooms]
   );
+
+  const closeRenameModal = () => {
+    setRenameOpenId(null);
+    setRenameValue("");
+    setRenameLoading(false);
+  };
 
   async function deleteRoom(id: string) {
     const ok = confirm("确定删除房间？房间内内容将被清空。");
@@ -41,8 +48,8 @@ export default function RoomsSidebar({ rooms }: { rooms: Room[] }) {
     }
   }
 
-  async function saveName(id: string) {
-    const name = editingValue.trim();
+  async function saveName(id: string, value: string) {
+    const name = value.trim();
     if (!name) {
       toast.error("名称不能为空");
       return;
@@ -51,22 +58,31 @@ export default function RoomsSidebar({ rooms }: { rooms: Room[] }) {
       toast.error("名称过长");
       return;
     }
+    setRenameLoading(true);
     const res = await fetch(`/api/room/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name }),
     });
+    setRenameLoading(false);
     if (!res.ok) {
       toast.error("更新失败");
       return;
     }
-    setEditingId(null);
-    setEditingValue("");
+    closeRenameModal();
     router.refresh();
   }
 
   return (
     <>
+      {/* mobile overlay: tap main area to close sidebar */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       <div
         className={cn(
           "fixed inset-y-0 left-0 z-30 w-72 transform bg-[#1e293b] border-r border-slate-700 transition-transform md:static md:translate-x-0",
@@ -97,7 +113,6 @@ export default function RoomsSidebar({ rooms }: { rooms: Room[] }) {
           <div className="space-y-2">
             {sortedRooms.map((room) => {
               const active = pathname === `/room/${room.id}`;
-              const isEditing = editingId === room.id;
               return (
                 <div
                   key={room.id}
@@ -107,50 +122,22 @@ export default function RoomsSidebar({ rooms }: { rooms: Room[] }) {
                   )}
                 >
                   <div className="h-2.5 w-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
-                  {isEditing ? (
-                    <input
-                      autoFocus
-                      value={editingValue}
-                      onChange={(e) => setEditingValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          void saveName(room.id);
-                        }
-                        if (e.key === "Escape") {
-                          setEditingId(null);
-                          setEditingValue("");
-                        }
-                      }}
-                      className="flex-1 rounded bg-slate-900 border border-slate-700 px-2 py-1 text-sm text-white focus:outline-none"
-                    />
-                  ) : (
-                    <Link
-                      href={`/room/${room.id}`}
-                      className="flex-1 truncate text-sm font-medium text-slate-200"
-                      onClick={() => setSidebarOpen(false)}
-                    >
-                      {room.name}
-                    </Link>
-                  )}
-                  {isEditing ? (
-                    <button
-                      className="p-1 text-blue-400 hover:text-blue-200"
-                      onClick={() => void saveName(room.id)}
-                    >
-                      保存
-                    </button>
-                  ) : (
-                    <button
-                      className="p-1 text-slate-500 hover:text-white"
-                      onClick={() => {
-                        setEditingId(room.id);
-                        setEditingValue(room.name);
-                      }}
-                    >
-                      <PencilLine className="h-4 w-4" />
-                    </button>
-                  )}
+                  <Link
+                    href={`/room/${room.id}`}
+                    className="flex-1 truncate text-sm font-medium text-slate-200"
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    {room.name}
+                  </Link>
+                  <button
+                    className="p-1 text-slate-500 hover:text-white"
+                    onClick={() => {
+                      setRenameOpenId(room.id);
+                      setRenameValue(room.name);
+                    }}
+                  >
+                    <PencilLine className="h-4 w-4" />
+                  </button>
                   <button
                     className="p-1 text-slate-500 hover:text-white"
                     onClick={() => deleteRoom(room.id)}
@@ -177,6 +164,55 @@ export default function RoomsSidebar({ rooms }: { rooms: Room[] }) {
       >
         <Menu className="h-5 w-5" />
       </button>
+
+      {renameOpenId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-[#111827] border border-slate-700 p-4 shadow-2xl">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-semibold text-white">修改房间名称</div>
+              <button className="p-1 text-slate-400 hover:text-white" onClick={closeRenameModal}>
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <input
+                autoFocus
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                maxLength={64}
+                placeholder="房间名称（最长 64 字）"
+                className="w-full rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    void saveName(renameOpenId, renameValue);
+                  }
+                  if (e.key === "Escape") {
+                    closeRenameModal();
+                  }
+                }}
+              />
+              <div className="flex justify-end gap-2 text-sm">
+                <button
+                  type="button"
+                  className="rounded-lg border border-slate-700 px-3 py-1.5 text-slate-300 hover:border-slate-500"
+                  onClick={closeRenameModal}
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void saveName(renameOpenId, renameValue)}
+                  disabled={renameLoading}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-1.5 text-white hover:bg-blue-500 disabled:opacity-60 whitespace-nowrap"
+                >
+                  {renameLoading ? "保存中..." : "确定"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

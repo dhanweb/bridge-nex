@@ -3,9 +3,9 @@ import { deleteRoom, updateRoomName } from "@/lib/room";
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const roomId = params.id;
+  const { id: roomId } = await params;
   if (!roomId) {
     return NextResponse.json({ error: "Room id required" }, { status: 400 });
   }
@@ -15,9 +15,9 @@ export async function DELETE(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const roomId = params.id;
+  const { id: roomId } = await params;
   if (!roomId) {
     return NextResponse.json({ error: "Room id required" }, { status: 400 });
   }
