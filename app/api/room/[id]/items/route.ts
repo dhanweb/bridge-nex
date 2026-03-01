@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { listItems, clearRoom } from "@/lib/item";
+import { notify } from "@/lib/ws-bus";
 
 export async function GET(
   _req: Request,
@@ -22,5 +23,6 @@ export async function DELETE(
     return NextResponse.json({ error: "Room id required" }, { status: 400 });
   }
   clearRoom(roomId);
+  void notify({ type: "room:cleared", roomId });
   return NextResponse.json({ ok: true });
 }

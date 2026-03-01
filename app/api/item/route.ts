@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createText, createFile } from "@/lib/item";
 import { getDb } from "@/lib/db";
+import { notify } from "@/lib/ws-bus";
 
 export const runtime = "nodejs";
 
@@ -36,6 +37,7 @@ export async function POST(request: Request) {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
       const item = createFile(roomId, buffer, file.type || undefined);
+      void notify({ type: "item:created", roomId, item });
       return NextResponse.json(item, { status: 201 });
     }
 
@@ -47,6 +49,7 @@ export async function POST(request: Request) {
     }
 
     const item = createText(roomId, content);
+    void notify({ type: "item:created", roomId, item });
     return NextResponse.json(item, { status: 201 });
   } catch (err: any) {
     if (err?.message === "File too large") {

@@ -78,6 +78,9 @@ export default function RoomClient({
   const [roomUrl, setRoomUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const copyTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const reconnectRef = useRef<number>(0);
+  const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setItems(initialItems);
@@ -90,6 +93,77 @@ export default function RoomClient({
       const { protocol, host } = window.location;
       setRoomUrl(`${protocol}//${host}/room/${currentRoom.id}`);
     }
+  }, [currentRoom.id]);
+
+  useEffect(() => {
+    function makeWsUrl() {
+      if (typeof window === "undefined") return null;
+      const { protocol, hostname } = window.location;
+      const wsProtocol = protocol === "https:" ? "wss:" : "ws:";
+      const port = process.env.NEXT_PUBLIC_WS_PORT || "4001";
+      return `${wsProtocol}//${hostname}:${port}`;
+    }
+
+    function connect() {
+      const url = makeWsUrl();
+      if (!url) return;
+      const ws = new WebSocket(url);
+      wsRef.current = ws;
+
+      ws.addEventListener("open", () => {
+        reconnectRef.current = 0;
+        ws.send(
+          JSON.stringify({ type: "subscribe", roomId: currentRoom.id })
+        );
+      });
+
+      ws.addEventListener("message", (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "item:created" && data.item) {
+            setItems((prev) => {
+              // replace pending if same room and pending
+              const pendingIndex = prev.findIndex(
+                (i) => i.status === "pending" && i.room_id === data.roomId
+              );
+              if (pendingIndex !== -1) {
+                const newArr = [...prev];
+                newArr[pendingIndex] = data.item;
+                return newArr;
+              }
+              return [data.item, ...prev];
+            });
+          }
+          if (data.type === "item:deleted" && data.id) {
+            setItems((prev) => prev.filter((i) => i.id !== data.id));
+          }
+          if (data.type === "room:cleared") {
+            setItems([]);
+          }
+        } catch (err) {
+          console.warn("ws message parse error", err);
+        }
+      });
+
+      const scheduleReconnect = () => {
+        if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+        const retry = Math.min(10000, 1000 * 2 ** reconnectRef.current);
+        reconnectRef.current += 1;
+        reconnectTimer.current = setTimeout(() => connect(), retry);
+      };
+
+      ws.addEventListener("close", scheduleReconnect);
+      ws.addEventListener("error", scheduleReconnect);
+    }
+
+    connect();
+
+    return () => {
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
   }, [currentRoom.id]);
 
   useEffect(() => {
@@ -445,7 +519,13 @@ export default function RoomClient({
                   <Loader2 className="h-4 w-4 animate-spin" /> 生成中...
                 </div>
               ) : (
-                <img src={qrDataUrl} alt="房间二维码" className="w-full h-full object-contain" />
+                <Image
+                  src={qrDataUrl}
+                  alt="房间二维码"
+                  width={320}
+                  height={320}
+                  className="w-full h-full object-contain"
+                />
               )}
             </div>
             <div className="text-[11px] text-slate-400 break-all">{roomUrl}</div>
