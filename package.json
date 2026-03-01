@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "ws-server": "tsx ws-server.ts"
+    "ws-server": "tsx ws-server.ts",
+    "start:all": "sh -c \"pnpm ws-server & pnpm start -- -H 0.0.0.0\""
   },
   "dependencies": {
     "better-sqlite3": "^12.6.2",
