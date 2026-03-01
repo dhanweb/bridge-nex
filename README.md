@@ -57,6 +57,17 @@
 - 邀请二维码：房间头部“邀请二维码”按钮，弹框可扫码或复制链接。
 - 移动端：点主区域可收起侧边栏。
 
+## 实时更新（WebSocket）
+- 独立进程：`pnpm ws-server`（默认监听 `0.0.0.0:4001`），需与 Next 一同运行。
+- 前端自动连接 `ws(s)://<host>:<port>`，默认端口 4001，HTTPS 自动使用 wss。
+- 事件：`item:created`、`item:deleted`、`room:cleared`，房间内实时广播。
+- API 通过 HTTP POST `/notify` 将事件推送给 WS 服务。
+
+环境变量：
+- `WS_PORT` / `WS_HOST`：WS 服务监听地址（默认 4001 / 0.0.0.0）。
+- `WS_NOTIFY_URL`：Next API 发送事件的通知地址（默认 http://127.0.0.1:4001/notify）。
+- `NEXT_PUBLIC_WS_PORT`：前端连接的 WS 端口（默认 4001）。
+
 ## 运行要求
 - Node.js 20
 - pnpm
