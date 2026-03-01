@@ -85,11 +85,11 @@ export default function RoomsSidebar({ rooms }: { rooms: Room[] }) {
 
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-30 w-72 transform bg-[#1e293b] border-r border-slate-700 transition-transform md:static md:translate-x-0",
+          "fixed inset-y-0 left-0 z-30 w-72 transform bg-[#1e293b] border-r border-slate-700 transition-transform md:static md:translate-x-0 md:sticky md:top-0 md:h-screen md:overflow-y-auto",
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        <div className="flex items-center gap-3 p-5 border-b border-slate-700">
+        <div className="flex items-center gap-3 p-5 border-b border-slate-700 bg-[#1e293b]">
           <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-900/30">
             <Hash className="h-5 w-5 text-white" />
           </div>
