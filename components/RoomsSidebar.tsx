@@ -153,6 +153,7 @@ export default function RoomsSidebar({ rooms }: { rooms: Room[] }) {
             onCreated={(id) => {
               setSidebarOpen(false);
               router.push(`/room/${id}`);
+              router.refresh();
             }}
           />
         </div>

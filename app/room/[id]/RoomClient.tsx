@@ -75,8 +75,7 @@ export default function RoomClient({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
-  const [qrLoading, setQrLoading] = useState(false);
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [roomUrl, setRoomUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const copyTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -85,6 +84,13 @@ export default function RoomClient({
     setText("");
     setFile(null);
   }, [initialItems, currentRoom.id]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const { protocol, host } = window.location;
+      setRoomUrl(`${protocol}//${host}/room/${currentRoom.id}`);
+    }
+  }, [currentRoom.id]);
 
   useEffect(() => {
     return () => {
@@ -195,7 +201,6 @@ export default function RoomClient({
     return formatDate(item.created_at);
   };
 
-  const roomUrl = typeof window !== "undefined" ? `${window.location.origin}/room/${currentRoom.id}` : "";
 
   async function openQr() {
     if (!roomUrl) return;
