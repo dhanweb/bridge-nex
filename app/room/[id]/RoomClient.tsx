@@ -316,6 +316,115 @@ export default function RoomClient({
   };
 
   return (
+    <div className="flex min-h-screen bg-[#0f172a]">
+      {/* Main only; sidebar provided by layout */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        <header className="sticky top-0 z-10 border-b border-slate-800 bg-[#0f172a]/90 backdrop-blur">
+          <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 md:px-6">
+            <div className="flex items-center gap-2 text-slate-200 font-semibold">
+              <Hash className="h-4 w-4 text-slate-500" /> {currentRoom.name}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <button
+                onClick={openQr}
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-700 px-3 py-1.5 text-slate-200 hover:border-blue-500 hover:text-white"
+              >
+                <QrCode className="h-4 w-4" /> 邀请二维码
+              </button>
+              <button
+                onClick={() => clearRoom(currentRoom.id)}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-1.5 text-slate-200 hover:border-blue-500 hover:text-white"
+              >
+                <Trash2 className="h-4 w-4" /> 清空房间
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto bg-[#0f172a] px-4 py-4 md:px-8 md:py-6">
+          <div className="mx-auto flex max-w-5xl flex-col gap-4 pb-28">
+            {items.map((item) => (
+              <div key={item.id} className="relative">
+                <ContentCard item={item} />
+                <button
+                  className="absolute right-3 top-3 rounded-full bg-black/40 p-2 text-slate-300 hover:text-white"
+                  onClick={() => deleteItem(item.id)}
+                  title="删除"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+            {items.length === 0 && (
+              <div className="mt-10 text-center text-sm text-muted-foreground">
+                这里还没有内容，试着发送文本或文件。
+              </div>
+            )}
+          </div>
+        </main>
+
+        <footer className="sticky bottom-0 z-10 bg-gradient-to-t from-[#0f172a] via-[#0f172a] to-transparent px-4 pb-5 pt-2 md:px-8">
+          <div className="mx-auto max-w-4xl rounded-2xl border-2 border-dashed border-slate-700 bg-[#1e293b] p-3 shadow-xl focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10">
+            <div className="flex items-start gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded-xl p-3 text-slate-300 hover:bg-slate-800 hover:text-white"
+                title="选择文件"
+                disabled={composerDisabled}
+              >
+                <Paperclip className="h-5 w-5" />
+              </button>
+              <div className="flex-1">
+                <textarea
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      void submitItem();
+                    }
+                  }}
+                  placeholder="在此输入文本，Enter 发送，Shift+Enter 换行，或选择文件..."
+                  className="w-full resize-none bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none min-h-[52px]"
+                  disabled={composerDisabled}
+                />
+                <div className="mt-1 text-[11px] text-slate-500">
+                  最大 200MB，文件名自动生成，不会暴露原始文件名。
+                </div>
+              </div>
+              {file && (
+                <div className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-2 text-xs text-slate-200">
+                  <FileIcon className="h-4 w-4" /> {file.name} ({formatBytes(file.size)})
+                  <button
+                    onClick={() => {
+                      setFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    className="text-slate-400 hover:text-white"
+                    disabled={composerDisabled}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+              <button
+                onClick={submitItem}
+                disabled={composerDisabled}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-900/40 hover:bg-blue-500 disabled:opacity-60"
+              >
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}发送
+              </button>
+            </div>
+          </div>
+        </footer>
+      </div>
+
       {qrOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className="w-full max-w-xs rounded-2xl bg-[#111827] border border-slate-700 p-4 shadow-2xl text-center space-y-3">
