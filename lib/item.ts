@@ -20,16 +20,16 @@ export interface Item {
 
 export function listItems(roomId: string): Item[] {
   const db = getDb();
-  const stmt = db.prepare<Item>(
+  const stmt = db.prepare(
     "SELECT * FROM item WHERE room_id = ? ORDER BY created_at DESC"
   );
-  return stmt.all(roomId);
+  return stmt.all(roomId) as Item[];
 }
 
 export function getItem(id: string): Item | undefined {
   const db = getDb();
-  const stmt = db.prepare<Item>("SELECT * FROM item WHERE id = ?");
-  return stmt.get(id);
+  const stmt = db.prepare("SELECT * FROM item WHERE id = ?");
+  return stmt.get(id) as Item | undefined;
 }
 
 export function createText(roomId: string, content: string): Item {

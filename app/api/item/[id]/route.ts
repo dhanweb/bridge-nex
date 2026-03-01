@@ -4,9 +4,9 @@ import { notify } from "@/lib/ws-bus";
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = params.id;
+  const { id } = await params;
   if (!id) {
     return NextResponse.json({ error: "id required" }, { status: 400 });
   }

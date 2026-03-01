@@ -76,6 +76,8 @@ export default function RoomClient({
   const [isPending, setIsPending] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
   const [roomUrl, setRoomUrl] = useState("");
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const copyTimerRef = useRef<NodeJS.Timeout | null>(null);
   const wsRef = useRef<WebSocket | null>(null);

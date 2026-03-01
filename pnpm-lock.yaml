@@ -45,15 +45,27 @@ devDependencies:
   '@tailwindcss/postcss':
     specifier: ^4
     version: 4.0.0
+  '@types/better-sqlite3':
+    specifier: ^7.6.13
+    version: 7.6.13
+  '@types/mime-types':
+    specifier: ^3.0.1
+    version: 3.0.1
   '@types/node':
     specifier: ^20
     version: 20.0.0
+  '@types/qrcode':
+    specifier: ^1.5.6
+    version: 1.5.6
   '@types/react':
     specifier: ^19
     version: 19.0.0
   '@types/react-dom':
     specifier: ^19
     version: 19.0.0
+  '@types/ws':
+    specifier: ^8.18.1
+    version: 8.18.1
   autoprefixer:
     specifier: ^10.4.27
     version: 10.4.27(postcss@8.5.6)
@@ -871,12 +883,28 @@ packages:
     dev: true
     optional: true
 
+  /@types/better-sqlite3@7.6.13:
+    resolution: {integrity: sha512-NMv9ASNARoKksWtsq/SHakpYAYnhBrQgGD8zkLYk/jaK8jUGn08CfEdTRgYhMypUQAfzSP8W6gNLe0q19/t4VA==}
+    dependencies:
+      '@types/node': 20.0.0
+    dev: true
+
   /@types/json5@0.0.29:
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
     dev: true
 
+  /@types/mime-types@3.0.1:
+    resolution: {integrity: sha512-xRMsfuQbnRq1Ef+C+RKaENOxXX87Ygl38W1vDfPHRku02TgQr+Qd8iivLtAMcR0KF5/29xlnFihkTlbqFrGOVQ==}
+    dev: true
+
   /@types/node@20.0.0:
     resolution: {integrity: sha512-cD2uPTDnQQCVpmRefonO98/PPijuOnnEy5oytWJFPY1N9aJCz2wJ5kSGWO+zJoed2cY2JxQh6yBuUq4vIn61hw==}
+    dev: true
+
+  /@types/qrcode@1.5.6:
+    resolution: {integrity: sha512-te7NQcV2BOvdj2b1hCAHzAoMNuj65kNBMz0KBaxM6c3VGBOhU0dURQKOtH8CFNI/dsKkwlv32p26qYQTWoB5bw==}
+    dependencies:
+      '@types/node': 20.0.0
     dev: true
 
   /@types/react-dom@19.0.0:
@@ -889,6 +917,12 @@ packages:
     resolution: {integrity: sha512-MY3oPudxvMYyesqs/kW1Bh8y9VqSmf+tzqw3ae8a9DZW68pUe3zAdHeI1jc6iAysuRdACnVknHP8AhwD4/dxtg==}
     dependencies:
       csstype: 3.2.3
+    dev: true
+
+  /@types/ws@8.18.1:
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
+    dependencies:
+      '@types/node': 20.0.0
     dev: true
 
   /@typescript-eslint/eslint-plugin@8.56.1(@typescript-eslint/parser@8.56.1)(eslint@9.0.0)(typescript@5.0.2):

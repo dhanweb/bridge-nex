@@ -12,8 +12,8 @@ export interface Room {
 
 export function listRooms(): Room[] {
   const db = getDb();
-  const stmt = db.prepare<Room>("SELECT * FROM room ORDER BY created_at DESC");
-  return stmt.all();
+  const stmt = db.prepare("SELECT * FROM room ORDER BY created_at DESC");
+  return stmt.all() as Room[];
 }
 
 export function createRoom(name: string): Room {
